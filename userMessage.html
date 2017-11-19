@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户信息管理</title>
+    <link rel="stylesheet" href="css/user.css" type="text/css">
+</head>
+<body>
+    <div class="bg">
+        <h3>用户信息管理</h3>
+        <div class="insert">
+            用户名：<input type="text" id="user"><br />
+            密　码：<input type="password" id="pass">
+            <input type="button" value="录入" id="btn">
+        </div>
+        <div class="content" id="message">
+            <table>
+                <thead>
+                    <tr>
+                        <th>编号</th>
+                        <th>用户名</th>
+                        <th>密码</th>
+                        <th>IP地址</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="insert edit" id="edited">
+        <h4>编辑用户信息</h4>
+        编　号: <input type="text"><br />
+        用户名: <input type="text"><br />
+        密　码: <input type="text"><br />
+        ip地址: <input type="text"><br />
+        <input type="button" value="提交">
+        <input type="button" value="取消修改">
+    </div>
+    <div class="inset see" id="se">
+        <div id="see"></div>
+        <h4>查看用户信息</h4>
+        编　号: <input type="text"><br />
+        用户名: <input type="text"><br />
+        密　码: <input type="text"><br />
+        ip地址: <input type="text"><br />
+        <input type="button" value="退出">
+    </div>
+    <script>
+        var user = document.getElementById('user');
+        var pass = document.getElementById('pass');
+        var btn = document.getElementById('btn');
+        var edited = document.getElementById('edited');
+        var se = document.getElementById('se');
+        var see = document.getElementById('see');
+        var message = document.getElementById('message');
+        var table = message.getElementsByTagName('table')[0];
+        var tbody = table.getElementsByTagName('tbody')[0];
+        //从数据库获取并动态创建表格，将数据显示在表格
+        function abc(action){
+            action=action||null;
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    tbody.innerHTML='';
+                    var data = xhr.responseText;
+                    var arr = JSON.parse(data);
+                    for (var i = 0; i < arr.length; i++) {
+                        var tr = document.createElement('tr');
+                        tbody.appendChild(tr);
+                        for (var k in arr[i]) {
+//                            console.log(arr[i].id);
+//                            console.log(arr[i][k]);
+                            var td = document.createElement('td');
+                            tr.appendChild(td);
+                            td.innerText = arr[i][k];
+                        }
+//                        td.innerHTML = i+1;
+                        var td = document.createElement('td');
+                        tr.appendChild(td);
+                        td.innerHTML = '【<a a href="javascript:;" id="del">删除</a>】【<a href="javascript:;" id="edit">编辑</a>】【<a href="javascript:;" id="see">查看</a>】';
+                    }
+                    //隔行变色
+                    if(tbody.hasChildNodes()){
+                        for(var i=0;i<tbody.children.length;i++){
+                            var tr = tbody.children[i];
+                            if(i % 2 == 0){
+                                tr.style.backgroundColor = '#c0c0c0';
+                            }else{
+                                tr.style.backgroundColor = '#A6C8FF';
+                            }
+                        }
+                    }
+//                    console.log(tbody.hasChildNodes());
+                }
+            }
+            xhr.open('post','user.php');
+            xhr.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+            xhr.send(action);
+           // xhr.send('add=1');
+            //action =
+        }
+        abc('action=sel');
+        function ajax(action){
+            action=action||null;
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    if(xhr.responseText == 1){
+//                        alert('录入成功');
+                        abc('action=sel');
+                    }else {
+                        alert('失败');
+                    }
+                }
+            }
+            xhr.open('post','user.php');
+            xhr.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+            xhr.send(action);
+        }
+        //录入事件
+        btn.onclick = function () {
+            var username = user.value;
+            var pwd = pass.value;
+            ajax('action=add&user='+username+'&pass='+pwd);
+            abc('action=sel');
+            user.value = '';
+            pass.value = '';
+        }
+        tbody.onclick=function(e) {
+//            console.log(e.target.id==1);
+            //删除功能
+            if (e.target.id == 'del') {
+//                console.log(e.target.parentNode.parentNode.children[0].innerText);
+                var id = e.target.parentNode.parentNode.children[0].innerText;
+                ajax('action=del&id=' + id);
+            }
+            //编辑功能
+            if (e.target.id == 'edit') {
+                edited.style.transition = '0.8s All';
+                edited.style.top = '84px';
+//                console.log(e.target.parentNode.parentNode);
+                var id = e.target.parentNode.parentNode.children[0].innerText;
+                var username = e.target.parentNode.parentNode.children[1].innerText;
+                var userpass = e.target.parentNode.parentNode.children[2].innerText;
+                var userip = e.target.parentNode.parentNode.children[3].innerText;
+//                console.log(edited.children[1].value);
+                edited.children[1].value = id;
+                edited.children[3].value = username;
+                edited.children[5].value = userpass;
+                edited.children[7].value = userip;
+//                console.log(edited.children);
+                edited.children[9].onclick = function () {
+                    edited.style.transition = '0.5s All';
+                    edited.style.top = '-400px';
+                    var id = edited.children[1].value;
+                    var username = edited.children[3].value;
+                    var userpass = edited.children[5].value;
+                    var userip = edited.children[7].value;
+//                    console.log(id,username,userpass,userip);
+                    ajax('action=update&id=' + id + '&user=' + username + '&pass=' + userpass + '&ip=' + userip);
+                }
+                edited.children[10].onclick = function () {
+                    edited.style.transition = '0.5s All';
+                    edited.style.top = '-400px';
+                }
+            }
+            //查看功能
+            if (e.target.id == 'see') {
+                se.style.transition='0.6s All';
+                se.style.transform='scale(1)';
+                var s_id = e.target.parentNode.parentNode.children[0].innerText;
+                var s_username = e.target.parentNode.parentNode.children[1].innerText;
+                var s_userpass = e.target.parentNode.parentNode.children[2].innerText;
+                var s_userip = e.target.parentNode.parentNode.children[3].innerText;
+//                console.log(edited.children[1].value);
+                se.children[2].value = s_id;
+                se.children[4].value = s_username;
+                se.children[6].value = s_userpass;
+                se.children[8].value = s_userip;
+//                se.children[7].value.style.paddingLeft = '20px';
+//                console.log(se.children);
+                see.onmousedown = function (e){
+                    se.style.transition='none';
+                    var x = e.pageX - se.offsetLeft;
+                    var y = e.pageY - se.offsetTop;
+                    document.onmousemove = function (e) {
+                        var seeX = e.pageX - x;
+                        var seeY = e.pageY - y;
+                        se.style.left = seeX + 'px';
+                        se.style.top = seeY + 'px';
+                    }
+                }
+                document.onmouseup = function () {
+                    document.onmousemove = null;
+                }
+                se.children[10].onclick = function () {
+                    se.style.transition='0.8s All';
+                    se.style.transform='scale(0)';
+                    se.children[10].style.cursor = 'pointer';
+                }
+            }
+        }
+//        console.log(tbody.childNodes);
+    </script>
+</body>
+</html>
